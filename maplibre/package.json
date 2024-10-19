@@ -1,0 +1,25 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon ./_scripts/mapgen_offline.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@mapbox/mbtiles": "^0.12.1",
+    "@mapbox/tilebelt": "^1.0.2",
+    "@mapbox/tilelive": "^6.1.2",
+    "axios": "^1.7.3",
+    "express": "^4.19.2",
+    "fs": "^0.0.1-security",
+    "maplibre-gl": "^4.5.1",
+    "mkdirp": "^3.0.1",
+    "nodemon": "^2.0.22",
+    "tileserver-gl": "^4.13.3",
+    "tileserver-gl-light": "^4.13.3"
+  }
+}

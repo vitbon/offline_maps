@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Offline Map with Markers</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+      #map {
+        height: 100vh;
+        width: 100vw;
+      }
+      .controls {
+        position: absolute;
+        top: 10px;
+        left: 60px;
+        z-index: 1000;
+        background: white;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <button id="addMarker">Add Marker</button>
+      <button id="saveMarkers">Save Markers</button>
+      |||
+      <input type="file" id="fileInput" />
+      <button id="loadMarkers">Load Markers</button>
+    </div>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+      var map = L.map("map", {
+        // center: [50.591351115388164, 36.5878326600486], // Bilgorod
+        center: [51.19065790288107, 35.270110568052075], // Sudzha
+        zoom: 12,
+      });
+
+      L.tileLayer("http://localhost:8081/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+      }).addTo(map);
+
+      var markers = [];
+
+      function loadMarkers() {
+        var fileInput = document.getElementById("fileInput");
+        var file = fileInput.files[0];
+
+        if (!file) {
+          alert("Please select a file first!");
+          return;
+        }
+
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+          var content = e.target.result;
+          var data = JSON.parse(content);
+
+          data.forEach((marker) => {
+            var newMarker = L.marker([marker.lat, marker.lng]).addTo(map);
+            markers.push(newMarker);
+          });
+        };
+
+        reader.readAsText(file);
+      }
+
+      // function loadMarkers() {
+      //   fetch("markers.json")
+      //     .then((response) => response.json())
+      //     .then((data) => {
+      //       data.forEach((marker) => {
+      //         var newMarker = L.marker([marker.lat, marker.lng]).addTo(map);
+      //         markers.push(newMarker);
+      //       });
+      //     });
+      // }
+
+      // function saveMarkers() {
+      //   var markerData = markers.map((marker) => {
+      //     var latlng = marker.getLatLng();
+      //     return { lat: latlng.lat, lng: latlng.lng };
+      //   });
+      //   fetch("saveMarkers", {
+      //     method: "POST",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     body: JSON.stringify(markerData),
+      //   });
+      // }
+
+      function downloadJSON(data, filename) {
+        var file = new Blob([JSON.stringify(data, null, 2)], {
+          type: "application/json",
+        });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(file);
+        a.download = filename;
+        a.click();
+      }
+
+      function saveMarkers() {
+        var markerData = markers.map((marker) => {
+          var latlng = marker.getLatLng();
+          return { lat: latlng.lat, lng: latlng.lng };
+        });
+        downloadJSON(markerData, "markers.json");
+      }
+
+      document.getElementById("addMarker").onclick = function () {
+        map.on("click", function (e) {
+          var newMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+          markers.push(newMarker);
+        });
+      };
+
+      document.getElementById("saveMarkers").onclick = function () {
+        saveMarkers();
+      };
+
+      document.getElementById("loadMarkers").onclick = function () {
+        loadMarkers();
+      };
+    </script>
+  </body>
+</html>

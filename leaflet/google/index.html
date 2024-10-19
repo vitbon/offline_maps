@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="https://openlayers.org/favicon.ico"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Using OpenLayers with Vite</title>
+    <style>
+      html,
+      body,
+      #map {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        min-width: 100%;
+        min-height: 100%;
+      }
+      .controls {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 300px;
+        z-index: 100;
+        background: #ffffffee;
+        padding: 10px;
+      }
+      .custom-marker {
+        height: 30px;
+        width: 30px;
+        position: absolute;
+        transform: translate(-50%, -50%);
+      }
+      .popover {
+        max-width: 400px !important;
+      }
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/ol/ol.css"
+      type="text/css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css"
+    />
+    <script type="module" crossorigin src="/assets/index-CM0HAm1w.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-D_Nq0xV8.css">
+  </head>
+  <body>
+    <div class="controls">
+      <p id="std">
+        <small>
+          <span id="sti">?</span> Last Message: <span id="lmd">?</span>
+        </small>
+      </p>
+      <div class="row">
+        <div class="col">
+          <label for="range" class="form-label">Icon size</label>
+          <input
+            type="range"
+            min="1"
+            max="3"
+            step="0.5"
+            value="2"
+            class="form-range"
+            id="range"
+          />
+        </div>
+        <div class="col">
+          <label for="inpt" class="form-label">TTL (mins)</label>
+          <input type="text" value="120" class="form-control" id="inpt" />
+        </div>
+      </div>
+    </div>
+
+    <div id="map"></div>
+
+    <div id="map" class="map"><div id="popup"></div></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Offline Map with Markers</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+      #map,
+      body {
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        padding: 0;
+      }
+      .controls {
+        position: absolute;
+        top: 20px;
+        left: 60px;
+        z-index: 1000;
+        background: #ffffff99;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <button id="addMarker">Add Marker</button>
+      <button id="saveMarkers">Save Markers</button>
+      |||
+      <input type="file" id="fileInput" />
+      <button id="loadMarkers">Load Markers</button>
+    </div>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- <script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script>
+    <link
+      href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet/leaflet-maplibre-gl.js"></script> -->
+
+    <script src="https://unpkg.com/leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js"></script>
+    <script>
+      var map = L.map("map", {
+        center: [50.591351115388164, 36.5878326600486], // Bilgorod
+        // center: [51.19065790288107, 35.270110568052075], // Sudzha
+        zoom: 12,
+      });
+
+      L.tileLayer("http://localhost:8081/{z}/{x}/{y}.jpg", {
+        maxZoom: 17,
+        attribution: "Raster Tiles",
+      }).addTo(map);
+
+      var vectorTileLayer = L.vectorGrid
+        .protobuf("http://localhost:8080/data/v3/{z}/{x}/{y}.pbf", {
+          rendererFactory: L.svg.tile,
+          vectorTileLayerStyles: {
+            water: {
+              fill: true,
+              weight: 1,
+              fillColor: "#0055ff",
+              color: "#ce6c6a",
+              fillOpacity: 0.3,
+              opacity: 0.3,
+            },
+            //linia po środku rzek
+            waterway: {
+              weight: 2,
+              fillColor: "blue",
+              color: "blue",
+              fillOpacity: 1,
+              opacity: 1,
+            },
+            //zagospodarowanie terenu
+            landuse: {
+              fill: true,
+              weight: 0,
+              fillColor: "#ce6c6a",
+              color: "#ce6c6a",
+              fillOpacity: 0,
+              opacity: 0.5,
+            },
+            // granice gmin/wojewodztw etc
+            boundary: {
+              weight: 0,
+              fillColor: "#fdaaac",
+              color: "#fdaaac",
+              fillOpacity: 0.0,
+              opacity: 0.3,
+            },
+            // drogi
+            transportation: (propreties, zoom) => {
+              if (propreties.class === "primary") {
+                return {
+                  weight: 3,
+                  fillColor: "#000000",
+                  color: "#000000",
+                  fillOpacity: 1,
+                  opacity: 0.8,
+                  // dashArray: [4, 4],
+                };
+              } else
+                return {
+                  weight: 0,
+                  fillColor: "#fffaaa",
+                  color: "#fffaaa",
+                  fillOpacity: 1,
+                  opacity: 1,
+                  // dashArray: [4, 4],
+                };
+            },
+            building: {
+              fill: true,
+              weight: 0.5,
+              fillColor: "#ce6c6a",
+              color: "#ce6c6a",
+              fillOpacity: 0,
+              opacity: 1,
+            },
+            wood: {
+              weight: 0.1,
+              fillColor: "#000",
+              color: "#000",
+              fillOpacity: 0,
+              opacity: 0,
+            },
+            //pokrycie terenu
+            landcover: {
+              fill: true,
+              weight: 0.2,
+              fillColor: "#f8d3d3",
+              color: "#e0a7b1",
+              fillOpacity: 0.1,
+              opacity: 0.1,
+            },
+            //parki
+            park: {
+              fill: true,
+              weight: 0,
+              fillColor: "#fac6c7",
+              color: "#e0a7b1",
+              fillOpacity: 0,
+              opacity: 0,
+            },
+            water_name: {
+              weight: 10,
+              fillColor: "#022c5b",
+              color: "#022c5b",
+              fillOpacity: 1,
+              opacity: 1,
+            },
+            transportation_name: {
+              weight: 0,
+              fillColor: "#bc6b38",
+              color: "#bc6b38",
+              fillOpacity: 1,
+              opacity: 1,
+            },
+            //chyba strefy lotnicze
+            aeroway: {
+              weight: 0,
+              fillColor: "black",
+              color: "black",
+              fillOpacity: 0,
+              opacity: 0,
+            },
+            aerodrome: {
+              weight: 10,
+              fillColor: "black",
+              color: "black",
+              fillOpacity: 1,
+              opacity: 1,
+            },
+            admin: {
+              weight: 1000,
+              fillColor: "black",
+              color: "black",
+              fillOpacity: 1,
+              opacity: 1,
+            },
+            transit: {
+              // nextzen only
+              weight: 10,
+              fillColor: "black",
+              color: "black",
+              fillOpacity: 1,
+              opacity: 1,
+              // 					dashArray: [4, 4]
+            },
+            place: {
+              weight: 0,
+              fillColor: "black",
+              color: "black",
+              fillOpacity: 0,
+              opacity: 0,
+            },
+            housenumber: {
+              weight: 0,
+              fillColor: "#ef4c8b",
+              color: "#ef4c8b",
+              fillOpacity: 1,
+              opacity: 1,
+            },
+            poi: {
+              weight: 0,
+              fillColor: "fdaaac",
+              color: "fdaaac",
+              fillOpacity: 1,
+              opacity: 1,
+            },
+            natural_label: {
+              weight: 1,
+              fillColor: "000",
+              color: "000",
+              fillOpacity: 1,
+              opacity: 1,
+            },
+            structure: {
+              weight: 1,
+              fillColor: "000",
+              color: "000",
+              fillOpacity: 1,
+              opacity: 1,
+            },
+            transit_stop_layer: {
+              weight: 1,
+              fillColor: "000",
+              color: "000",
+              fillOpacity: 1,
+              opacity: 1,
+            },
+            earth: {
+              fill: true,
+              weight: 1,
+              fillColor: "#fdaaac",
+              color: "#fdaaac",
+              fillOpacity: 1,
+              opacity: 1,
+            },
+
+            /* 
+            water: {
+              fill: true,
+              weight: 1,
+              fillColor: "#06cccc",
+              color: "#06cccc",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+            admin: {
+              weight: 1,
+              fillColor: "pink",
+              color: "pink",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+            waterway: {
+              weight: 1,
+              fillColor: "#2375e0",
+              color: "#2375e0",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+            landcover: {
+              fill: true,
+              weight: 1,
+              fillColor: "#53e033",
+              color: "#53e033",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+            landuse: {
+              fill: true,
+              weight: 1,
+              fillColor: "#e5b404",
+              color: "#e5b404",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+            park: {
+              fill: true,
+              weight: 1,
+              fillColor: "#84ea5b",
+              color: "#84ea5b",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+            boundary: {
+              weight: 1,
+              fillColor: "#c545d3",
+              color: "#c545d3",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+            aeroway: {
+              weight: 1,
+              fillColor: "#51aeb5",
+              color: "#51aeb5",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+            road: {
+              // mapbox & nextzen only
+              weight: 1,
+              fillColor: "#f2b648",
+              color: "#f2b648",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+            tunnel: {
+              // mapbox only
+              weight: 0.5,
+              fillColor: "#f2b648",
+              color: "#f2b648",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+              // 					dashArray: [4, 4]
+            },
+            bridge: {
+              // mapbox only
+              weight: 0.5,
+              fillColor: "#f2b648",
+              color: "#f2b648",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+              // 					dashArray: [4, 4]
+            },
+            transportation: {
+              // openmaptiles only
+              weight: 0.5,
+              fillColor: "#f2b648",
+              color: "#f2b648",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+              // 					dashArray: [4, 4]
+            },
+            transit: {
+              // nextzen only
+              weight: 0.5,
+              fillColor: "#f2b648",
+              color: "#f2b648",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+              // 					dashArray: [4, 4]
+            },
+            building: {
+              fill: true,
+              weight: 1,
+              fillColor: "#2b2b2b",
+              color: "#2b2b2b",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+            water_name: {
+              weight: 1,
+              fillColor: "#022c5b",
+              color: "#022c5b",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+            transportation_name: {
+              weight: 1,
+              fillColor: "#bc6b38",
+              color: "#bc6b38",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+            place: {
+              weight: 1,
+              fillColor: "#f20e93",
+              color: "#f20e93",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+            housenumber: {
+              weight: 1,
+              fillColor: "#ef4c8b",
+              color: "#ef4c8b",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+            poi: {
+              weight: 1,
+              fillColor: "#3bb50a",
+              color: "#3bb50a",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+            earth: {
+              // nextzen only
+              fill: true,
+              weight: 1,
+              fillColor: "#c0c0c0",
+              color: "#c0c0c0",
+              fillOpacity: 0.2,
+              opacity: 0.4,
+            },
+
+            // Do not symbolize some stuff for mapbox
+            country_label: [],
+            marine_label: [],
+            state_label: [],
+            place_label: [],
+            waterway_label: [],
+            poi_label: [],
+            road_label: [],
+            housenum_label: [],
+
+            // Do not symbolize some stuff for openmaptiles
+            country_name: [],
+            marine_name: [],
+            state_name: [],
+            place_name: [],
+            waterway_name: [],
+            poi_name: [],
+            road_name: [],
+            housenum_name: [],
+             */
+          },
+          maxZoom: 17,
+          interactive: true,
+          attribution: "Vector Tiles",
+        })
+        .addTo(map);
+
+      // L.maplibreGL({
+      //   style: "http://localhost:8080/styles/basic-preview/style.json", // Style URL; see our documentation for more options
+      //   attribution:
+      //     '&copy; <a href="https://stadiamaps.com/" target="_blank">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+      // }).addTo(map);
+
+      // var vectorTileLayer = L.vectorGrid
+      //   .protobuf("http://localhost:8081/{z}/{x}/{y}.pbf", {
+      //     vectorTileLayerStyles: {
+      //       // Define styles for different vector layers
+      //       "layer-name": function (properties, zoom) {
+      //         return {
+      //           fillColor: "#FF0000",
+      //           color: "#000000",
+      //           weight: 1,
+      //           opacity: 1,
+      //           fillOpacity: 0.5,
+      //         };
+      //       },
+      //     },
+      //     maxZoom: 17,
+      //     interactive: true,
+      //     attribution: "Local Vector Tiles",
+      //   })
+      //   .addTo(map);
+
+      var markers = [];
+
+      function loadMarkers() {
+        var fileInput = document.getElementById("fileInput");
+        var file = fileInput.files[0];
+
+        if (!file) {
+          alert("Please select a file first!");
+          return;
+        }
+
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+          var content = e.target.result;
+          var data = JSON.parse(content);
+
+          data.forEach((marker) => {
+            var newMarker = L.marker([marker.lat, marker.lng]).addTo(map);
+            markers.push(newMarker);
+          });
+        };
+
+        reader.readAsText(file);
+      }
+
+      // function loadMarkers() {
+      //   fetch("markers.json")
+      //     .then((response) => response.json())
+      //     .then((data) => {
+      //       data.forEach((marker) => {
+      //         var newMarker = L.marker([marker.lat, marker.lng]).addTo(map);
+      //         markers.push(newMarker);
+      //       });
+      //     });
+      // }
+
+      // function saveMarkers() {
+      //   var markerData = markers.map((marker) => {
+      //     var latlng = marker.getLatLng();
+      //     return { lat: latlng.lat, lng: latlng.lng };
+      //   });
+      //   fetch("saveMarkers", {
+      //     method: "POST",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     body: JSON.stringify(markerData),
+      //   });
+      // }
+
+      function downloadJSON(data, filename) {
+        var file = new Blob([JSON.stringify(data, null, 2)], {
+          type: "application/json",
+        });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(file);
+        a.download = filename;
+        a.click();
+      }
+
+      function saveMarkers() {
+        var markerData = markers.map((marker) => {
+          var latlng = marker.getLatLng();
+          return { lat: latlng.lat, lng: latlng.lng };
+        });
+        downloadJSON(markerData, "markers.json");
+      }
+
+      document.getElementById("addMarker").onclick = function () {
+        map.on("click", function (e) {
+          var newMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+          markers.push(newMarker);
+        });
+      };
+
+      document.getElementById("saveMarkers").onclick = function () {
+        saveMarkers();
+      };
+
+      document.getElementById("loadMarkers").onclick = function () {
+        loadMarkers();
+      };
+    </script>
+  </body>
+</html>
